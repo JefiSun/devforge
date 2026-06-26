@@ -10,7 +10,9 @@ Orchestrates an 8-phase build pipeline. All state in `.pipeline/state.json` — 
 ## Stack
 - Next.js 14 App Router · TypeScript strict · Tailwind CSS · shadcn/ui
 - Unit: Vitest + Testing Library · E2E: Playwright
-- Model: claude-sonnet-4-6 (all agents)
+- Models:
+  - claude-sonnet-4-6: orchestrator, architect, dev-executor, reviewer, doc-generator, learning-extractor
+  - claude-haiku-4-5:  brd-parser, project-scanner, test-runner
 
 ---
 
@@ -215,11 +217,14 @@ Check `state.features[featId].status` — skip features already `DONE`.
 
 For each feature (in order):
 1. Set `state.features[featId].status = "BUILDING"` → write state
-2. Spawn `agents/dev-executor.md`. Pass: feature spec path, `.pipeline/clarifications.json`, `.pipeline/instincts/dev-executor.md` (if exists)
-3. Confirm build exits 0
-4. If build fails → fix inline → retry once → if still fails → set status = `"BLOCKED"`, `phase = BLOCKED_EXECUTING` → report to user → stop
-5. On success → set `state.features[featId].status = "DONE"`, `builtAt = now` → write state
-6. **Proactive feature review:** spawn `agents/reviewer.md` in `FEATURE_REVIEW` mode. Pass: feature spec path (so reviewer knows which files to check). Report findings immediately — CRITICAL blocks pipeline, WARN reported but continues.
+2. **Autopilot model selection** — read feature spec, pick model (no Opus):
+   - `claude-sonnet-4-6` if ANY of: `priority = high`, has `dependencies`, keywords `auth/payment/algorithm/integration/permission` in spec
+   - `claude-haiku-4-5` otherwise (UI-only, display, list, form, low/medium priority, no deps)
+3. Spawn `agents/dev-executor.md` with selected model. Pass: feature spec path, `.pipeline/clarifications.json`, `.pipeline/instincts/dev-executor.md` (if exists)
+4. Confirm build exits 0
+5. If build fails → fix inline → retry once → if still fails → set status = `"BLOCKED"`, `phase = BLOCKED_EXECUTING` → report to user → stop
+6. On success → set `state.features[featId].status = "DONE"`, `builtAt = now` → write state
+7. **Proactive feature review:** spawn `agents/reviewer.md` in `FEATURE_REVIEW` mode. Pass: feature spec path (so reviewer knows which files to check). Report findings immediately — CRITICAL blocks pipeline, WARN reported but continues.
 
 After all features DONE → set `phase = TESTING` → write state.
 
@@ -250,7 +255,7 @@ Compare with `state.testFailureSignatures` (previous attempt's hashes):
   - Save current signatures to `state.testFailureSignatures` → write state
   - Increment `retries.test`
   - If `retries.test < 2`:
-    - Spawn `agents/dev-executor.md` in FIX mode. Pass: `.pipeline/test-results.json`
+    - Spawn `agents/dev-executor.md` in FIX mode with `claude-haiku-4-5`. Pass: `.pipeline/test-results.json`
     - Re-spawn `agents/test-runner.md`
   - If `retries.test >= 2` → set `phase = BLOCKED_TESTING`, reason = `"MAX_RETRIES"` → report to user → stop
 

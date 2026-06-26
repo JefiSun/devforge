@@ -1,5 +1,6 @@
 ---
 name: reviewer
+model: claude-sonnet-4-6
 description: Two modes — FEATURE_REVIEW (per feature during build) and FULL_REVIEW (post-test global pass). Read-only, no installs, no edits.
 tools:
   - Read

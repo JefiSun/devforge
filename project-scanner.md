@@ -1,5 +1,6 @@
 ---
 name: project-scanner
+model: claude-haiku-4-5
 description: Build project context for all subsequent agents. Two modes — INSTRUCTION (read a user-provided instruction.md) or SCAN (auto-scan the codebase). Output is always .pipeline/project-context.md.
 tools:
   - Read

@@ -1,5 +1,6 @@
 ---
 name: learning-extractor
+model: claude-sonnet-4-6
 description: Extract patterns from completed pipeline run and write approved patterns as instinct files for each agent
 tools:
   - Read

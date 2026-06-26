@@ -1,5 +1,6 @@
 ---
 name: doc-generator
+model: claude-sonnet-4-6
 description: Generate README, API docs, and deployment guide from the built project
 tools:
   - Read

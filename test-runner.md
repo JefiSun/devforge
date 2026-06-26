@@ -1,5 +1,6 @@
 ---
 name: test-runner
+model: claude-haiku-4-5
 description: Run full test suite — report results only. Never creates, edits, or fixes files.
 tools:
   - Bash

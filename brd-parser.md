@@ -1,5 +1,6 @@
 ---
 name: brd-parser
+model: claude-haiku-4-5
 description: Parse a Word .docx BRD into structured JSON requirements
 tools:
   - Read

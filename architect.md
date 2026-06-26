@@ -1,5 +1,6 @@
 ---
 name: architect
+model: claude-sonnet-4-6
 description: Design implementation plan and per-feature specs from a filtered feature list
 tools:
   - Read
