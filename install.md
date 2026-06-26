@@ -10,29 +10,14 @@
 
 ## Quick Install
 
+**Mac / Linux:**
 ```bash
-git clone https://github.com/JefiSun/devforge.git
-cd devforge
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash
+```
 
-# Create target dirs
-mkdir -p ~/.claude/skills/devforge/stacks
-mkdir -p ~/.claude/agents
-
-# Install orchestrator skill
-cp SKILL.md ~/.claude/skills/devforge/
-
-# Install stack configs
-cp stacks/*.md ~/.claude/skills/devforge/stacks/
-
-# Install agents
-cp brd-parser.md \
-   architect.md \
-   dev-executor.md \
-   test-runner.md \
-   reviewer.md \
-   doc-generator.md \
-   learning-extractor.md \
-   ~/.claude/agents/
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
 ```
 
 ---
@@ -72,14 +57,10 @@ After install, confirm structure:
 
 ## Update
 
-To update to a newer version:
+Re-run the install command — it overwrites existing files.
 
 ```bash
-git pull
-cp SKILL.md ~/.claude/skills/devforge/
-cp stacks/*.md ~/.claude/skills/devforge/stacks/
-cp brd-parser.md architect.md dev-executor.md test-runner.md \
-   reviewer.md doc-generator.md learning-extractor.md ~/.claude/agents/
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash
 ```
 
 Existing `.pipeline/` state and `instincts/` in your projects are untouched.

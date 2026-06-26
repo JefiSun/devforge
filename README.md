@@ -19,19 +19,14 @@ Each phase writes to `.pipeline/state.json` — the pipeline is fully resumable 
 
 ## Installation
 
+**Mac / Linux:**
 ```bash
-# Clone
-git clone https://github.com/JefiSun/devforge.git
-cd devforge
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash
+```
 
-# Install
-mkdir -p ~/.claude/skills/devforge/stacks
-mkdir -p ~/.claude/agents
-
-cp SKILL.md ~/.claude/skills/devforge/
-cp stacks/*.md ~/.claude/skills/devforge/stacks/
-cp brd-parser.md architect.md dev-executor.md test-runner.md \
-   reviewer.md doc-generator.md learning-extractor.md ~/.claude/agents/
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
 ```
 
 ---
