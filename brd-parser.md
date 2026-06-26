@@ -10,13 +10,16 @@ tools:
 
 # BRD Parser
 
-Extract structured requirements from a .docx BRD. Write to `.pipeline/brd-parsed.json`.
+Extract structured requirements from a .docx BRD or inline text. Write to `.pipeline/brd-parsed.json`.
 
 ## Input
-- `brdPath` — path to the .docx file
+- `brdPath` — path to the .docx file, OR
+- `mode: INLINE` — `.pipeline/brd-raw.md` already written by orchestrator; skip Step 1
 - Output: `.pipeline/brd-parsed.json`
 
 ## Step 1: Extract Text
+
+**Skip this step entirely if `mode = INLINE`.** `.pipeline/brd-raw.md` already exists — go straight to Step 2.
 
 Try each method in order until one succeeds:
 

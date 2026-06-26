@@ -1,6 +1,6 @@
 # DevForge
 
-End-to-end web development pipeline for Claude Code. Feed it a BRD, get a built, tested, reviewed, and documented web app.
+End-to-end web development pipeline for Claude Code. Give it a BRD file or paste requirements directly — get a built, tested, reviewed, and documented web app.
 
 ---
 
@@ -38,13 +38,54 @@ cp brd-parser.md architect.md dev-executor.md test-runner.md \
 
 ## Usage
 
-In any Claude Code session:
+Two ways to start the pipeline:
+
+### Option 1 — BRD File (`.docx`)
+
+Have a Word document with requirements? Point DevForge at it:
 
 ```
-/devforge my-project.docx
+/devforge path/to/my-project.docx
 ```
 
-Or trigger phrases: `"build from BRD"`, `"run the pipeline"`, `"implement this spec"`
+Or in plain language:
+```
+build from BRD: path/to/my-project.docx
+run the pipeline with specs/labdesk-brd.docx
+```
+
+DevForge extracts text via pandoc or python-docx, parses features, then runs the full pipeline.
+
+**Requirements:** `pandoc` (preferred) or `python3 + python-docx` — see [Requirements](#requirements).
+
+---
+
+### Option 2 — Inline Requirements (chat)
+
+No docx? Just type your requirements directly:
+
+```
+run the pipeline
+
+Requirements:
+- Build a task management app
+- Users can create, edit, delete tasks
+- Tasks have title, description, due date, priority (high/medium/low)
+- Dashboard shows tasks grouped by status (todo/in-progress/done)
+- Filter tasks by priority and due date
+```
+
+Or trigger naturally:
+```
+implement this spec:
+[paste requirements here]
+```
+
+DevForge writes your text to `.pipeline/brd-raw.md`, skips docx extraction, and parses it as-is. No file needed — useful for quick builds, prototypes, or when requirements live in a doc you can copy-paste.
+
+**Tip:** More detail = better feature specs. Include acceptance criteria when you have them.
+
+---
 
 ### Special Commands
 
@@ -54,6 +95,7 @@ Or trigger phrases: `"build from BRD"`, `"run the pipeline"`, `"implement this s
 | `re-run feat-002` | Rebuild a specific feature + full regression |
 | `review feat-003` | Feature review only, no phase change |
 | `BRD updated, re-parse` | Re-parse BRD, diff changes, flag stale clarifications |
+| `clarification for feat-002 changed: {answer}` | Update clarification, warn dependents, optionally re-run |
 | `what phase is the pipeline in?` | Report current state |
 
 ---
@@ -70,6 +112,7 @@ Or trigger phrases: `"build from BRD"`, `"run the pipeline"`, `"implement this s
 | TESTING | test-runner | `test-results.json`, manual checklist |
 | REVIEWING | reviewer | `review-report.md` |
 | DOCUMENTING | doc-generator | README, API docs, deployment guide |
+| DONE | orchestrator | Summary report, optional WARN resolution |
 | LEARNING | learning-extractor | `.pipeline/instincts/` updated |
 
 ### Gates (what blocks the pipeline)
@@ -124,6 +167,7 @@ devforge/
   stacks/
     nextjs14.md             ← stack config (install to ~/.claude/skills/devforge/stacks/)
   brd-parser.md             ← agents (install to ~/.claude/agents/)
+  project-scanner.md
   architect.md
   dev-executor.md
   test-runner.md
@@ -137,14 +181,15 @@ devforge/
 ```
 .pipeline/
   state.json                ← resume point
+  brd-raw.md                ← extracted/inline requirements text
   brd-parsed.json
+  project-context.md        ← existing projects only (from project-scanner)
   clarifications.json
   impl-plan.md
   feature-specs/
-  feature-reviews/
   test-results.json
-  manual-checklist.md
   review-report.md
+  open-warnings.md          ← created if WARNs deferred at DONE
   instincts/                ← learned patterns, grow over time
     architect.md
     dev-executor.md
@@ -168,4 +213,4 @@ Presents each as a candidate for approval, then appends approved patterns to `.p
 
 - Claude Code (latest)
 - Node.js 18+
-- For BRD parsing: `pandoc` (preferred) or `python3` with `python-docx`
+- For BRD **file** mode only: `pandoc` (preferred) or `python3` with `python-docx`. Not needed for inline mode.

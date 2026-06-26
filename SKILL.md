@@ -27,6 +27,7 @@ Read `.pipeline/state.json` first on every invocation. Write it after every phas
     "name": "",
     "root": ".",
     "brdPath": "",
+    "brdMode": "file",
     "isNewProject": true
   },
   "stack": "",
@@ -69,7 +70,11 @@ Any phase can become `BLOCKED_{PHASE}` on gate failure.
 ## How to Start
 
 1. Check for `.pipeline/state.json` → if exists, resume from `state.phase`
-2. If missing: ask user for BRD path + new or existing project → initialise state → create `.pipeline/` and `.pipeline/feature-specs/` dirs → set `phase = INIT`
+2. If missing: determine input mode:
+   - **File mode** — user provides a `.docx` path → set `state.project.brdPath`, `state.project.brdMode = "file"`
+   - **Inline mode** — user types requirements as chat text (no docx) → write the text verbatim to `.pipeline/brd-raw.md` → set `state.project.brdPath = ""`, `state.project.brdMode = "inline"`
+   - If unclear which mode → ask: `"BRD file path, or type your requirements here?"`
+3. Ask: new or existing project → initialise state → create `.pipeline/` and `.pipeline/feature-specs/` dirs → set `phase = INIT`
 
 ---
 
@@ -130,7 +135,9 @@ Update `state.project` → set `phase = BRD_PARSING` → write state.
 
 ### BRD_PARSING
 
-Spawn `agents/brd-parser.md`. Pass: `brdPath`, output path `.pipeline/brd-parsed.json`.
+Check `state.project.brdMode`:
+- `"file"` → spawn `agents/brd-parser.md`. Pass: `brdPath`, output path `.pipeline/brd-parsed.json`
+- `"inline"` → spawn `agents/brd-parser.md` with `mode: INLINE`. Pass: output path `.pipeline/brd-parsed.json`. (`.pipeline/brd-raw.md` already written — brd-parser skips extraction and goes straight to Step 2)
 
 On success → initialise `state.features` from parsed feature IDs (all status = PENDING) → set `phase = FEATURE_SELECTION` → write state.
 
