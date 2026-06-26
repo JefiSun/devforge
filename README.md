@@ -115,7 +115,6 @@ DevForge writes your text to `.pipeline/brd-raw.md`, skips docx extraction, and 
 
 | Phase | Agent | Output |
 |-------|-------|--------|
-| INIT | orchestrator | Project scaffolded, deps installed |
 | PLANNED | architect | `impl-plan.md` + `feature-specs/feat-N.md` |
 | EXECUTING | dev-executor + reviewer | Built features, per-feature reviews + commits |
 | TESTING | test-runner | `test-results.json` |
@@ -151,7 +150,6 @@ stack: {id}
 label: "..."
 ---
 
-## Scaffold        ← new project command
 ## Dev Dependencies
 ## Test Config
 ## Commands        ← build, typecheck, lint, dev, unit-test, e2e-test
@@ -191,7 +189,7 @@ devforge/
 .pipeline/
   state.json                ← resume point
   brd-raw.md                ← requirements text (file-extracted or inline)
-  project-context.md        ← existing projects only (from project-scanner)
+  project-context.md        ← from project-scanner (instruction or scan mode)
   clarifications.json
   impl-plan.md
   feature-specs/

@@ -28,7 +28,7 @@ Read `.pipeline/state.json` first on every invocation. Write it after every phas
     "root": ".",
     "brdPath": "",
     "brdMode": "file",
-    "isNewProject": true
+
   },
   "stack": "",
   "stackFilePath": "",
@@ -72,7 +72,7 @@ Any phase can become `BLOCKED_{PHASE}` on gate failure.
    - **File mode** — user provides a `.docx` path → set `state.project.brdPath`, `state.project.brdMode = "file"`
    - **Inline mode** — user types requirements as chat text (no docx) → write the text verbatim to `.pipeline/brd-raw.md` → set `state.project.brdPath = ""`, `state.project.brdMode = "inline"`
    - If unclear which mode → ask: `"BRD file path, or type your requirements here?"`
-3. Ask: new or existing project → initialise state → create `.pipeline/` and `.pipeline/feature-specs/` dirs → set `phase = INIT`
+3. Initialise state → create `.pipeline/` and `.pipeline/feature-specs/` dirs → set `phase = INIT`
 
 ---
 
@@ -82,13 +82,11 @@ Any phase can become `BLOCKED_{PHASE}` on gate failure.
 
 **Select stack:**
 
-For existing projects, read `package.json` to detect:
+Read `package.json` to detect:
 - Has `"next"` in dependencies → `nextjs14`
 - Has `"nuxt"` in dependencies → `nuxt3`
 - Has `"@vitejs/plugin-react"` and not `"next"` → `react-vite`
-- Unrecognised → ask user
-
-For new projects, ask:
+- Unrecognised → ask:
 ```
 Which stack?
   1. nextjs14   — Next.js 14 · TypeScript · Tailwind · shadcn/ui
@@ -110,9 +108,7 @@ If no answer → default `max`. Set `state.mode` → write state.
 
 Read `state.stackFilePath`. From the stack file:
 
-**New project:** run the `## Scaffold` command.
-
-**Existing project:** confirm root path exists. Then ask:
+Confirm root path exists. Then ask:
 
 ```
 How should I learn this project?
@@ -133,7 +129,7 @@ Update `state.project` → set `phase = PLANNED` → write state.
 
 ### PLANNED
 
-Spawn `agents/architect.md`. Pass: input source (docx path if `brdMode = "file"`, or `.pipeline/brd-raw.md` if `brdMode = "inline"`), project root, `isNewProject`, `.pipeline/instincts/architect.md` (if exists).
+Spawn `agents/architect.md`. Pass: input source (docx path if `brdMode = "file"`, or `.pipeline/brd-raw.md` if `brdMode = "inline"`), project root, `.pipeline/instincts/architect.md` (if exists).
 
 Architect must:
 1. Extract features from raw input
@@ -283,7 +279,7 @@ Set `phase = COMPLETE` → write state.
 User says: `"enhance: {description}"` or `"enhance {description}"` (with or without keyword, whenever the intent is to add/change existing functionality)
 
 1. Write description verbatim to `.pipeline/brd-raw.md` (inline mode)
-2. Set `state.project.brdMode = "inline"`, `state.project.isNewProject = false`
+2. Set `state.project.brdMode = "inline"`
 3. Set `phase = PLANNED` → write state
 4. Resume pipeline from PLANNED → EXECUTING → TESTING → REVIEWING → DOCUMENTING → DONE
 5. Do NOT restart from INIT — preserve existing stack, mode, and project context
