@@ -19,6 +19,8 @@ Each phase writes to `.pipeline/state.json` — the pipeline is fully resumable 
 
 ## Installation
 
+### Claude Code
+
 **Mac / Linux:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash
@@ -28,6 +30,20 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 ```powershell
 irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
 ```
+
+### GitHub Copilot CLI
+
+**Mac / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash -s -- --copilot
+```
+
+**Windows (PowerShell):**
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Copilot
+```
+
+> Install for both: pass `--both` / `-Both`. See [install.md](install.md) for full details.
 
 ---
 
@@ -206,6 +222,6 @@ Presents each as a candidate for approval, then appends approved patterns to `.p
 
 ## Requirements
 
-- Claude Code (latest)
+- Claude Code (latest) **or** GitHub Copilot CLI (latest)
 - Node.js 18+
 - For BRD **file** mode only: `pandoc` (preferred) or `python3` with `python-docx`. Not needed for inline mode.
