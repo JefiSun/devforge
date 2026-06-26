@@ -1,10 +1,10 @@
-$ErrorActionPreference = "Stop"
-
 param(
     [switch]$Copilot,
     [switch]$Both,
     [switch]$Uninstall
 )
+
+$ErrorActionPreference = "Stop"
 
 $repo = "https://raw.githubusercontent.com/JefiSun/devforge/main"
 
