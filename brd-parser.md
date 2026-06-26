@@ -6,7 +6,6 @@ tools:
   - Read
   - Write
   - Bash
-model: claude-sonnet-4-6
 ---
 
 # BRD Parser
@@ -72,6 +71,7 @@ Read `.pipeline/brd-raw.md`. Extract into this exact structure:
       "sourceId": "LCA-003-01",
       "name": "",
       "description": "",
+      "status": "complete|incomplete",
       "acceptanceCriteria": [""],
       "priority": "high|medium|low",
       "dependencies": []
@@ -87,6 +87,7 @@ Read `.pipeline/brd-raw.md`. Extract into this exact structure:
 - One feature per distinct deliverable. IDs: feat-001, feat-002 (zero-padded to 3 digits)
 - **Sub-sections become separate features.** If a BRD section has numbered sub-sections (e.g. LCA-003-01, LCA-003-02), each sub-section is its own feat ID — do NOT group them under the parent. The parent section (e.g. LCA-003 Master Data) is not a feat; only its sub-sections are.
 - Add a `"sourceId"` field to each feature recording the original BRD section ID (e.g. `"LCA-003-01"`). This is for traceability — do not use it as the feat ID.
+- **`"status"` field:** Set `"incomplete"` if any of these apply: section is labelled "(pending)", content is under 3 sentences with no acceptance criteria, or section says "TBD / to be defined". Set `"complete"` otherwise.
 - Acceptance criteria must be observable and testable — never vague ("system should be fast" → `openQuestions`)
 - Priority: blocks core user flow = `high`; supporting feature = `medium`; nice-to-have = `low`
 - `dependencies`: feat IDs this feature requires. Leave empty `[]` if none
@@ -94,4 +95,4 @@ Read `.pipeline/brd-raw.md`. Extract into this exact structure:
 - Write to `.pipeline/brd-parsed.json`
 
 ## Done
-Return: `"BRD parsed. {N} features extracted. {M} open questions. Written to .pipeline/brd-parsed.json"`
+Return: `"BRD parsed. {N} features extracted ({I} incomplete). {M} open questions. Written to .pipeline/brd-parsed.json"`

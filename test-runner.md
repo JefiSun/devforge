@@ -6,7 +6,6 @@ tools:
   - Bash
   - Read
   - Write
-model: claude-sonnet-4-6
 ---
 
 # Test Runner
@@ -78,6 +77,31 @@ Extract: total, passed, failed, failed test names and error messages.
 
 ---
 
+## Step 2.5: i18n Completeness Check
+
+Run only if i18n is configured (check for `messages/en.json`, `locales/en.json`, or `i18n/en.json`):
+
+```bash
+find . -name "en.json" -path "*/messages/*" -o -name "en.json" -path "*/locales/*" -o -name "en.json" -path "*/i18n/*" 2>/dev/null | head -3
+```
+
+If found, for each locale file alongside `en.json`:
+```bash
+node -e "
+const en = require('./messages/en.json');
+const id = require('./messages/id.json');
+const missing = Object.keys(en).filter(k => !(k in id));
+if (missing.length) { console.log('MISSING:', missing.join(', ')); process.exit(1); }
+console.log('OK');
+"
+```
+
+- Missing keys in any non-English locale → `i18nPassed = false`, list missing keys as failures
+- All keys present → `i18nPassed = true`
+- i18n not configured → `i18nPassed = true` (not applicable)
+
+---
+
 ## Step 3: Manual Checklist
 
 Read `brd-parsed.json`. Write `.pipeline/manual-checklist.md`:
@@ -120,17 +144,25 @@ Write `.pipeline/test-results.json`:
       { "name": "test name", "error": "exact error message" }
     ]
   },
+  "i18n": {
+    "checked": false,
+    "missingKeys": []
+  },
   "coveragePassed": false,
-  "e2ePassed": false
+  "unitTestsPassed": false,
+  "e2ePassed": false,
+  "i18nPassed": true
 }
 ```
 
 `coveragePassed = unit.coverage >= 80`
+`unitTestsPassed = unit.failed === 0`
 `e2ePassed = e2e.failed === 0`
+`i18nPassed = i18n.missingKeys.length === 0`
 
 ---
 
 ## Done
-Return: `"Tests complete. Unit: {passed}/{total} ({coverage}% coverage). E2E: {passed}/{total}. Gate: {PASS|FAIL}."`
+Return: `"Tests complete. Unit: {passed}/{total} ({coverage}% coverage, {failed} failing). E2E: {passed}/{total}. i18n: {OK|MISSING {N} keys}. Gate: {PASS|FAIL}."`
 
 If FAIL, list each failure name and error — orchestrator passes this to dev-executor.

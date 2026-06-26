@@ -158,15 +158,26 @@ Features found in BRD:
   feat-001  [high]    Login
   feat-002  [high]    Master Data
   feat-003  [medium]  Transaction
-  feat-004  [low]     Report
+  feat-004  [low]     Report      ⚠ INCOMPLETE
   feat-005  [low]     Logging
 
 Build which features?
   Type: all  OR  feat IDs separated by commas (e.g. feat-002, feat-003)
 ```
 
+Mark any feature with `"status": "incomplete"` with `⚠ INCOMPLETE` in the list.
+
+**Before accepting input — INCOMPLETE gate:** if any features are marked INCOMPLETE, show:
+```
+⚠ {N} incomplete feature(s): feat-004 (Report)
+  BRD section is too thin to build from. Options:
+  a) Skip these features — exclude from this build
+  b) Include anyway — architect will ask clarifying questions
+```
+Resolve per feature before proceeding. Set `status = "skipped"` in brd-parsed.json for skipped features.
+
 **Accept only:**
-- `all` → `selectedFeatures = []`
+- `all` → `selectedFeatures = []` (excludes skipped features automatically)
 - Comma-separated IDs → `selectedFeatures = ["feat-002", "feat-003"]`
 - If anything else typed → re-ask with the same prompt
 
@@ -217,9 +228,7 @@ Check `state.features[featId].status` — skip features already `DONE`.
 
 For each feature (in order):
 1. Set `state.features[featId].status = "BUILDING"` → write state
-2. **Autopilot model selection** — read feature spec, pick model (no Opus):
-   - `claude-sonnet-4-6` if ANY of: `priority = high`, has `dependencies`, keywords `auth/payment/algorithm/integration/permission` in spec
-   - `claude-haiku-4-5` otherwise (UI-only, display, list, form, low/medium priority, no deps)
+2. **Autopilot model selection** — read `autopilot` block from `agents/dev-executor.md` frontmatter. Apply its rules against the feature spec to pick a model. Never select a model listed under `never`.
 3. Spawn `agents/dev-executor.md` with selected model. Pass: feature spec path, `.pipeline/clarifications.json`, `.pipeline/instincts/dev-executor.md` (if exists)
 4. Confirm build exits 0
 5. If build fails → fix inline → retry once → if still fails → set status = `"BLOCKED"`, `phase = BLOCKED_EXECUTING` → report to user → stop
@@ -236,7 +245,7 @@ Spawn `agents/test-runner.md`. Pass: project root, `.pipeline/brd-parsed.json`.
 
 Read `.pipeline/test-results.json`:
 
-**Pass:** `coveragePassed && e2ePassed` → set `gates.testsPassed = true` → write state.
+**Pass:** `coveragePassed && unitTestsPassed && e2ePassed && i18nPassed` → set `gates.testsPassed = true` → write state.
 
 Check `state.mode`:
 - `max` → set `phase = REVIEWING`
@@ -290,6 +299,20 @@ Report to user:
 - Unit coverage %, E2E pass/fail
 - Review WARN count
 - Docs: README.md, docs/API.md, docs/DEPLOYMENT.md
+
+**WARN resolution (only if review WARN count > 0):**
+
+List each WARN with file:line and ask:
+```
+{N} warnings found. Resolve now before closing?
+  1. yes — fix all WARNs now (spawns dev-executor in FIX mode per WARN, then re-runs reviewer on affected files)
+  2. later — log to .pipeline/open-warnings.md and continue
+  3. skip — ignore
+```
+
+- **yes** → for each WARN: spawn `agents/dev-executor.md` in FIX mode with the WARN as input. After all fixed, spawn `agents/reviewer.md` in FEATURE_REVIEW mode on affected files. Update review-report.md. Then proceed.
+- **later** → write `.pipeline/open-warnings.md` listing all unresolved WARNs. Proceed.
+- **skip** → proceed.
 
 Set `phase = LEARNING` → write state.
 

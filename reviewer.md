@@ -6,7 +6,6 @@ tools:
   - Read
   - Bash
   - Glob
-model: claude-sonnet-4-6
 ---
 
 # Reviewer
@@ -47,10 +46,12 @@ grep -n "role=" {feature_files}
 grep -En "(api_key|secret|password|token)\s*[:=]\s*['\"][^'\"]{8,}" {feature_files} -i
 grep -n "dangerouslySetInnerHTML" {feature_files}
 grep -n "console\.log" {feature_files}
+grep -rn "export.*POST\|export.*PUT\|export.*PATCH\|export.*DELETE" {feature_files}
 ```
 
 - Hardcoded secrets → **CRITICAL**
 - `dangerouslySetInnerHTML` without sanitisation → **CRITICAL**
+- API route (POST/PUT/PATCH/DELETE) with no rate limiting import (`rateLimit\|rateLimiter\|upstash\|limiter`) → **CRITICAL**
 - `console.log` → **WARN**
 
 ### Category 3: Code Quality (feature files only)

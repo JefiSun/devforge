@@ -1,6 +1,15 @@
 ---
 name: dev-executor
 description: Build one feature from a spec, or fix failing tests. Stack-agnostic — loads commands and conventions from stack file.
+autopilot:
+  never: claude-opus-4-8
+  select:
+    claude-sonnet-4-6:
+      - priority = high
+      - has dependencies
+      - spec contains any of: auth, payment, algorithm, integration, permission, certificate, pdf, email
+    claude-haiku-4-5:
+      - otherwise (UI-only, display, list, form, low/medium priority, no deps)
 tools:
   - Read
   - Edit
@@ -45,6 +54,15 @@ If `.pipeline/project-context.md` exists (existing project):
 cat .pipeline/project-context.md
 ```
 Apply the actual conventions, file structure, and patterns documented there. These override stack file defaults where they conflict — the project-context reflects what the codebase already does.
+
+---
+
+## Default Rules
+
+Apply these regardless of instinct file content:
+
+- **PDF generation** — always implement as an API route (`app/api/pdf/route.ts` or equivalent). Never call a PDF library from a client component or page component directly.
+- **File upload E2E patterns** — when writing tests that assert on file upload completion, use `page.waitForSelector('[data-testid="upload-success"]')` or equivalent success indicator. Never use fixed `page.waitForTimeout()`.
 
 ---
 

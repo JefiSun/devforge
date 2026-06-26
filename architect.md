@@ -6,7 +6,6 @@ tools:
   - Read
   - Glob
   - Bash
-model: claude-sonnet-4-6
 ---
 
 # Architect
@@ -36,6 +35,18 @@ If `.pipeline/instincts/architect.md` exists:
 cat .pipeline/instincts/architect.md
 ```
 Apply all instructions — especially clarification patterns (pre-ask those questions automatically, skip if already answered).
+
+---
+
+## Default Rules
+
+Apply these to every project regardless of instinct file content:
+
+- **Large list pages** — any list expected to exceed 200 rows: spec TanStack Virtual for row virtualization. Do not wait for performance review to catch this.
+- **PDF generation** — any feature generating a PDF (certificate, report, form): spec it as a server-side API route (e.g. `app/api/pdf/route.ts`). Never render PDF client-side.
+- **Email recipients** — any email notification: recipient address must be read from master data or config table at send time. Never hardcode org names or addresses in templates.
+- **External integrations** (AD, HR, SAP, ERP, any third-party API): spec an env flag `{SERVICE}_MOCK=true` and a mock stub from day one. Real integration is a future phase unless user explicitly confirms endpoint is available now.
+- **Images** — any feature displaying images: use `next/image` (or framework equivalent). Flag `<img>` tags as a spec violation.
 
 ---
 
