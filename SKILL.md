@@ -139,7 +139,13 @@ Check `state.project.brdMode`:
 - `"file"` → spawn `agents/brd-parser.md`. Pass: `brdPath`, output path `.pipeline/brd-parsed.json`
 - `"inline"` → spawn `agents/brd-parser.md` with `mode: INLINE`. Pass: output path `.pipeline/brd-parsed.json`. (`.pipeline/brd-raw.md` already written — brd-parser skips extraction and goes straight to Step 2)
 
-On success → initialise `state.features` from parsed feature IDs (all status = PENDING) → set `phase = FEATURE_SELECTION` → write state.
+On success → initialise `state.features` from parsed feature IDs (all status = PENDING) → write state.
+
+**Existing project reconciliation** (skip if `isNewProject = true`):
+
+Read `.pipeline/project-context.md` and `.pipeline/brd-parsed.json`. For each feature, check whether the project context describes it as already implemented (look for matching functionality, route, component, or API described as existing). For each confirmed match, set `state.features[featId].status = "DONE"` and `builtAt = "pre-existing"`. Write state.
+
+→ set `phase = FEATURE_SELECTION` → write state.
 
 **On BRD re-parse (user says "BRD updated, re-parse"):**
 - Re-spawn brd-parser
@@ -158,21 +164,25 @@ On success → initialise `state.features` from parsed feature IDs (all status =
 
 ### FEATURE_SELECTION
 
-Read `.pipeline/brd-parsed.json`. Display feature list:
+Read `.pipeline/brd-parsed.json` and `state.features`. Display feature list:
 
 ```
 Features found in BRD:
-  feat-001  [high]    Login
-  feat-002  [high]    Master Data
+  feat-001  [high]    Login              ✓ EXISTS
+  feat-002  [high]    Master Data        ✓ EXISTS
   feat-003  [medium]  Transaction
-  feat-004  [low]     Report      ⚠ INCOMPLETE
+  feat-004  [low]     Report             ⚠ INCOMPLETE
   feat-005  [low]     Logging
 
 Build which features?
   Type: all  OR  feat IDs separated by commas (e.g. feat-002, feat-003)
+  Note: "all" skips ✓ EXISTS features — type their IDs explicitly to rebuild them.
 ```
 
+Mark any feature with `state.features[id].status = "DONE"` with `✓ EXISTS`.
 Mark any feature with `"status": "incomplete"` with `⚠ INCOMPLETE` in the list.
+
+`all` expands to: all features whose status is NOT `DONE` or `skipped`. User must name a `✓ EXISTS` feature explicitly to rebuild it.
 
 **Before accepting input — INCOMPLETE gate:** if any features are marked INCOMPLETE, show:
 ```
