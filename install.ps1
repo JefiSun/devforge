@@ -2,7 +2,8 @@ $ErrorActionPreference = "Stop"
 
 param(
     [switch]$Copilot,
-    [switch]$Both
+    [switch]$Both,
+    [switch]$Uninstall
 )
 
 $repo = "https://raw.githubusercontent.com/JefiSun/devforge/main"
@@ -22,6 +23,16 @@ $stacks = @(
     "nextjs14.md"
 )
 
+function Uninstall-DevForge($skillDir, $agentDir, $label) {
+    Write-Host "Uninstalling DevForge from $label..."
+    if (Test-Path $skillDir) { Remove-Item -Recurse -Force $skillDir }
+    foreach ($f in $agents) {
+        $p = Join-Path $agentDir $f
+        if (Test-Path $p) { Remove-Item -Force $p }
+    }
+    Write-Host "Done ($label)."
+}
+
 function Install-DevForge($skillDir, $agentDir, $label) {
     Write-Host "Installing DevForge for $label..."
     New-Item -ItemType Directory -Force -Path "$skillDir\stacks" | Out-Null
@@ -36,7 +47,16 @@ function Install-DevForge($skillDir, $agentDir, $label) {
     Write-Host "Done ($label)."
 }
 
-if ($Both) {
+if ($Uninstall) {
+    if ($Both) {
+        Uninstall-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
+        Uninstall-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
+    } elseif ($Copilot) {
+        Uninstall-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
+    } else {
+        Uninstall-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
+    }
+} elseif ($Both) {
     Install-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
     Install-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
 } elseif ($Copilot) {

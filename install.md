@@ -1,23 +1,21 @@
 # Install DevForge
 
-## Requirements
+One install. Works for Claude Code and GitHub Copilot CLI.
 
-- Claude Code (latest) **or** GitHub Copilot CLI (latest)
-- Node.js 18+
-- `pandoc` (preferred) or `python3` + `python-docx` for BRD parsing
+Run the one-liner for your tool. Want to know what gets touched, scroll down.
 
 ---
 
-## Quick Install
+## One-liner
 
 ### Claude Code
 
-**Mac / Linux:**
+**macOS / Linux / WSL:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell 5.1+):**
 ```powershell
 irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
 ```
@@ -26,85 +24,124 @@ irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
 
 ### GitHub Copilot CLI
 
-**Mac / Linux:**
+**macOS / Linux / WSL:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash -s -- --copilot
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell 5.1+):**
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Copilot
 ```
 
 ---
 
-### Both (Claude Code + GitHub Copilot CLI)
+### Both tools at once
 
-**Mac / Linux:**
+**macOS / Linux / WSL:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash -s -- --both
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell 5.1+):**
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Both
 ```
 
 ---
 
-## File Destinations
+## What gets installed
 
-| Source | Claude Code | GitHub Copilot CLI |
-|--------|-------------|---------------------|
+| File | Claude Code | GitHub Copilot CLI |
+|------|-------------|---------------------|
 | `SKILL.md` | `~/.claude/skills/devforge/SKILL.md` | `~/.copilot/skills/devforge/SKILL.md` |
 | `stacks/*.md` | `~/.claude/skills/devforge/stacks/` | `~/.copilot/skills/devforge/stacks/` |
-| `*.md` (agents) | `~/.claude/agents/` | `~/.copilot/agents/` |
+| Agent `*.md` files | `~/.claude/agents/` | `~/.copilot/agents/` |
+
+Safe to re-run — overwrites existing files. `.pipeline/` state and `instincts/` in your projects are never touched.
+
+---
+
+## Requirements
+
+- Claude Code (latest) **or** GitHub Copilot CLI (latest)
+- Node.js 18+
+- BRD **file** mode only: `pandoc` (preferred) or `python3` + `python-docx`. Not needed for inline mode.
 
 ---
 
 ## Verify
 
-After install, confirm the skill loaded:
+**Claude Code** — open a session and type:
+```
+/devforge
+```
 
-**Claude Code:** type `/devforge` in a session.
-
-**GitHub Copilot CLI:**
+**GitHub Copilot CLI** — open a session and run:
 ```
 /skills info devforge
 ```
 
-Expected structure:
-```
-~/.copilot/                         # or ~/.claude/
-  skills/
-    devforge/
-      SKILL.md
-      stacks/
-        nextjs14.md
-  agents/
-    brd-parser.md
-    architect.md
-    dev-executor.md
-    test-runner.md
-    reviewer.md
-    doc-generator.md
-    learning-extractor.md
-    project-scanner.md
-```
+You should see the skill name, description, and file path. If missing, run `/skills reload` and check again.
 
 ---
 
 ## Update
 
-Re-run the install command — it overwrites existing files.
-
-Existing `.pipeline/` state and `instincts/` in your projects are untouched.
+Re-run the install one-liner. Overwrites existing files, leaves project state untouched.
 
 ---
 
-## Add a Stack
+## Uninstall
 
-Create `stacks/{id}.md` with required sections, then copy to the skills dir:
+**Claude Code:**
+
+macOS / Linux / WSL:
+```bash
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash -s -- --uninstall
+```
+
+Windows (PowerShell):
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Uninstall
+```
+
+**GitHub Copilot CLI:**
+
+macOS / Linux / WSL:
+```bash
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash -s -- --copilot --uninstall
+```
+
+Windows (PowerShell):
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Copilot -Uninstall
+```
+
+**Both:**
+
+macOS / Linux / WSL:
+```bash
+curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | bash -s -- --both --uninstall
+```
+
+Windows (PowerShell):
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Both -Uninstall
+```
+
+What uninstall removes:
+- `~/.claude/skills/devforge/` or `~/.copilot/skills/devforge/` (the skill + stacks)
+- Each agent `.md` file from `~/.claude/agents/` or `~/.copilot/agents/`
+
+What it does **not** remove:
+- `.pipeline/` directories in your projects (state, specs, instincts)
+
+---
+
+## Add a stack
+
+Create `stacks/{id}.md` with required sections (see `README.md → Adding a Stack`), then copy to the skills dir:
 
 ```bash
 # Claude Code
@@ -112,36 +149,4 @@ cp stacks/mystack.md ~/.claude/skills/devforge/stacks/
 
 # GitHub Copilot CLI
 cp stacks/mystack.md ~/.copilot/skills/devforge/stacks/
-```
-
-See `README.md → Adding a Stack` for the required section template.
-
----
-
-## Uninstall
-
-**Claude Code:**
-```bash
-rm -rf ~/.claude/skills/devforge
-rm ~/.claude/agents/brd-parser.md \
-   ~/.claude/agents/architect.md \
-   ~/.claude/agents/dev-executor.md \
-   ~/.claude/agents/test-runner.md \
-   ~/.claude/agents/reviewer.md \
-   ~/.claude/agents/doc-generator.md \
-   ~/.claude/agents/learning-extractor.md \
-   ~/.claude/agents/project-scanner.md
-```
-
-**GitHub Copilot CLI:**
-```bash
-rm -rf ~/.copilot/skills/devforge
-rm ~/.copilot/agents/brd-parser.md \
-   ~/.copilot/agents/architect.md \
-   ~/.copilot/agents/dev-executor.md \
-   ~/.copilot/agents/test-runner.md \
-   ~/.copilot/agents/reviewer.md \
-   ~/.copilot/agents/doc-generator.md \
-   ~/.copilot/agents/learning-extractor.md \
-   ~/.copilot/agents/project-scanner.md
 ```

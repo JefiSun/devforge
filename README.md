@@ -43,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Copilot
 ```
 
-> Install for both: pass `--both` / `-Both`. See [install.md](install.md) for full details.
+> Install for both: pass `--both` / `-Both`. Uninstall: add `--uninstall` / `-Uninstall`. See [install.md](install.md) for full details.
 
 ---
 
