@@ -17,7 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 **Windows (PowerShell 5.1+):**
 ```powershell
-irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1"
 ```
 
 ---
@@ -31,7 +31,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 **Windows (PowerShell 5.1+):**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --copilot
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1" --copilot
 ```
 
 ---
@@ -45,7 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 **Windows (PowerShell 5.1+):**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --both
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1" --both
 ```
 
 ---
@@ -103,7 +103,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 Windows (PowerShell):
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --uninstall
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1" --uninstall
 ```
 
 **GitHub Copilot CLI:**
@@ -115,7 +115,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 Windows (PowerShell):
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --copilot --uninstall
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1" --copilot --uninstall
 ```
 
 **Both:**
@@ -127,7 +127,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 Windows (PowerShell):
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --both --uninstall
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1" --both --uninstall
 ```
 
 What uninstall removes:

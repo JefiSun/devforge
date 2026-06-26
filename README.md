@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1"
 ```
 
 ### GitHub Copilot CLI
@@ -40,7 +40,7 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 **Windows (PowerShell):**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --copilot
+irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1 -OutFile "$env:TEMP\devforge.ps1"; & "$env:TEMP\devforge.ps1" --copilot
 ```
 
 > Install for both: pass `--both`. Uninstall: add `--uninstall`. See [install.md](install.md) for full details.
