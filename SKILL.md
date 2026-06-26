@@ -41,6 +41,7 @@ Read `.pipeline/state.json` first on every invocation. Write it after every phas
     "implPlan": ".pipeline/impl-plan.md",
     "featureSpecs": ".pipeline/feature-specs/",
     "clarifications": ".pipeline/clarifications.json",
+    "featureTestResults": ".pipeline/test-results-{featId}.json",
     "testResults": ".pipeline/test-results.json",
     "reviewReport": ".pipeline/review-report.md",
     "instincts": ".pipeline/instincts/"
@@ -50,7 +51,7 @@ Read `.pipeline/state.json` first on every invocation. Write it after every phas
     "testsPassed": false,
     "reviewPassed": false
   },
-  "retries": { "test": 0 },
+  "retries": { "test": 0, "featureTest": {} },
   "testFailureSignatures": []
 }
 ```
@@ -168,19 +169,25 @@ Read `.pipeline/feature-specs/`. Process all feature specs in order.
 Check `state.features[featId].status` — skip features already `DONE`.
 
 For each feature (in order):
-1. Set `state.features[featId].status = "BUILDING"` → write state
+1. Set `state.features[featId].status = "BUILDING"` → initialize `state.retries.featureTest[featId] = 0` → write state
 2. **Autopilot model selection** — read `autopilot` block from `agents/dev-executor.md` frontmatter. Apply its rules against the feature spec to pick a model. Never select a model listed under `never`.
 3. Spawn `agents/dev-executor.md` with selected model. Pass: feature spec path, `.pipeline/clarifications.json`, `.pipeline/instincts/dev-executor.md` (if exists)
 4. Confirm build exits 0
 5. If build fails → fix inline → retry once → if still fails → set status = `"BLOCKED"`, `phase = BLOCKED_EXECUTING` → report to user → stop
-6. On success → set `state.features[featId].status = "DONE"`, `builtAt = now` → write state
-7. **Proactive feature review:** spawn `agents/reviewer.md` in `FEATURE_REVIEW` mode. Pass: feature spec path (so reviewer knows which files to check). Report findings immediately — CRITICAL blocks pipeline, WARN reported but continues.
+6. **Proactive feature review:** spawn `agents/reviewer.md` in `FEATURE_REVIEW` mode. Pass: feature spec path. CRITICAL → set status = `"BLOCKED"`, `phase = BLOCKED_EXECUTING` → report to user → stop. WARN → report and continue.
+7. **Feature-scoped test:** spawn `agents/test-runner.md` in `FEATURE` mode. Pass: feature spec path, feat ID. Writes `.pipeline/test-results-{featId}.json`.
+8. If feature tests fail:
+   - If `state.retries.featureTest[featId] < 1` → spawn `agents/dev-executor.md` in FIX mode. Pass: `.pipeline/test-results-{featId}.json`. Increment `state.retries.featureTest[featId]` → write state. Re-run step 7.
+   - If `state.retries.featureTest[featId] >= 1` → set status = `"BLOCKED"`, `phase = BLOCKED_EXECUTING` → report to user → stop.
+9. If feature tests pass → git commit (stage files listed in the feature spec as created/modified) → set `state.features[featId].status = "DONE"`, `builtAt = now` → write state.
 
 After all features DONE → set `phase = TESTING` → write state.
 
 ---
 
 ### TESTING
+
+Reset state before global run: set `state.retries.featureTest = {}`, `state.retries.test = 0`, `state.testFailureSignatures = []` → write state.
 
 Spawn `agents/test-runner.md`. Pass: project root.
 

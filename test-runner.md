@@ -13,8 +13,17 @@ tools:
 Run tests. Report results. Do not fix failures — that is dev-executor's job.
 
 ## Input
+
+**Global mode (default):**
 - Project root
-- `.pipeline/brd-parsed.json` (for manual checklist)
+
+**FEATURE mode:**
+- `featureSpecPath` — path to the feature spec file
+- `featId` — feature ID (e.g. `feat-001`)
+
+---
+
+**Mode routing:** If invoked with `featureSpecPath` and `featId`, run [FEATURE Mode](#feature-mode) below. Otherwise run Steps 0–4 (global mode).
 
 ---
 
@@ -166,3 +175,104 @@ Write `.pipeline/test-results.json`:
 Return: `"Tests complete. Unit: {passed}/{total} ({coverage}% coverage, {failed} failing). E2E: {passed}/{total}. i18n: {OK|MISSING {N} keys}. Gate: {PASS|FAIL}."`
 
 If FAIL, list each failure name and error — orchestrator passes this to dev-executor.
+
+---
+
+## FEATURE Mode
+
+Run scoped unit tests for a single feature. No E2E. No coverage gate. No manual checklist.
+
+### Step F0: Load Stack Commands
+
+```bash
+cat .pipeline/state.json
+```
+
+Read `state.stackFilePath`. Read stack file. Extract unit test command.
+
+### Step F1: Identify Feature Files
+
+Read `{featureSpecPath}`. Look for a `## Files`, `## Implementation`, or `## File Changes` section listing files this feature creates or modifies. Extract that list.
+
+If no explicit file list found: set `filesFound = false`. Skip Step F2 scoping — run all unit tests in Step F2 instead (no file filter). `testsFound` in output JSON will be determined by whether any unit tests exist in the project.
+
+### Step F2: Run Scoped Unit Tests
+
+Run the unit test command from the stack file, scoped to the feature's files.
+
+**If `filesFound = true` (scoped run):**
+
+Run the unit test command from the stack file with file arguments. Example for Vitest (Next.js / React-Vite stack):
+```bash
+npx vitest run --reporter=verbose {file1} {file2} ...
+```
+Where `{file1}`, `{file2}` are test files for each source file in the feature list. Search in these locations for each source file `src/foo/bar.ts`:
+- `src/foo/bar.test.ts` / `src/foo/bar.spec.ts` (co-located)
+- `src/foo/__tests__/bar.test.ts`
+- `__tests__/foo/bar.test.ts`
+- `tests/foo/bar.test.ts`
+
+If no test files found for ANY of the feature's source files: set `testsFound = false`, `unitTestsPassed = null`. Write results and return to orchestrator.
+
+**If `filesFound = false` (unscoped run):**
+
+Run full unit suite (no file filter):
+```bash
+npx vitest run --reporter=verbose
+```
+Set `testsFound = true` if any tests ran, `testsFound = false` if suite is empty. Parse results normally.
+
+Parse output for:
+- Total tests, passed, failed
+- Failed test names and exact error messages
+
+### Step F3: Write Feature Test Results
+
+Write `.pipeline/test-results-{featId}.json`.
+
+**When tests ran (`testsFound = true`):**
+```json
+{
+  "timestamp": "{ISO timestamp}",
+  "featId": "{featId}",
+  "mode": "FEATURE",
+  "testsFound": true,
+  "unit": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "failures": []
+  },
+  "unitTestsPassed": true
+}
+```
+
+**When no tests found (`testsFound = false`):**
+```json
+{
+  "timestamp": "{ISO timestamp}",
+  "featId": "{featId}",
+  "mode": "FEATURE",
+  "testsFound": false,
+  "unit": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "failures": []
+  },
+  "unitTestsPassed": null
+}
+```
+
+`unitTestsPassed = unit.failed === 0` (when `testsFound = true`)
+`unitTestsPassed = null` (when `testsFound = false` — no tests run, orchestrator decides)
+
+Orchestrator behavior when `unitTestsPassed = null`: treat as PASS (proceed to commit). Log warning: `"No tests found for {featId} — committed without test verification."`
+
+### Done (FEATURE mode)
+
+If `testsFound = true`: Return `"Feature tests complete for {featId}. Unit: {passed}/{total} ({failed} failing). Gate: {PASS|FAIL}."`
+
+If `testsFound = false`: Return `"Feature tests complete for {featId}. No tests found. Gate: PASS (no tests to fail)."`
+
+If FAIL, list each failure name and error — orchestrator passes this to dev-executor FIX mode.
