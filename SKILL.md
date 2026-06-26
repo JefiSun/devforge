@@ -1,6 +1,6 @@
 ---
 name: devforge
-description: End-to-end web development pipeline. Use this skill whenever: a .docx BRD is provided with a build request, user says "build from BRD / implement this spec / run the pipeline / develop this feature / re-run feat-X", or a multi-phase web development workflow is needed. Stack-agnostic — supports nextjs14, react-vite, and more via stack files. Works for both new and existing repos.
+description: "End-to-end web development pipeline. Use this skill whenever: a .docx BRD is provided with a build request, user says \"build from BRD / implement this spec / run the pipeline / develop this feature / re-run feat-X\", or a multi-phase web development workflow is needed. Stack-agnostic — supports nextjs14, react-vite, and more via stack files. Works for both new and existing repos."
 ---
 
 # Web Dev Pipeline
