@@ -1,6 +1,6 @@
 ---
 name: devforge
-description: "End-to-end web development pipeline. Use this skill whenever: a .docx BRD is provided with a build request, user says \"build from BRD / implement this spec / run the pipeline / develop this feature / re-run feat-X\", or a multi-phase web development workflow is needed. Stack-agnostic — supports nextjs14, react-vite, and more via stack files. Works for both new and existing repos."
+description: "End-to-end web development pipeline. Use this skill whenever: a .docx BRD is provided with a build request, user says \"build from BRD / implement this spec / run the pipeline / develop this feature / enhance / enhance: [description] / re-run feat-X\", or a multi-phase web development workflow is needed. Stack-agnostic — supports nextjs14, react-vite, and more via stack files. Works for both new and existing repos."
 ---
 
 # Web Dev Pipeline
@@ -346,6 +346,24 @@ Set `phase = COMPLETE` → write state.
 ---
 
 ## Special Commands
+
+### Enhance
+
+User says: `"enhance: {description}"` or `"enhance {description}"` (with or without keyword, whenever the intent is to add/change existing functionality)
+
+1. Write description verbatim to `.pipeline/brd-raw.md` (inline mode)
+2. Set `state.project.brdMode = "inline"`, `state.project.isNewProject = false`
+3. Set `phase = BRD_PARSING` → write state
+4. Resume pipeline from BRD_PARSING → FEATURE_SELECTION → PLANNED → EXECUTING → TESTING → REVIEWING → DOCUMENTING → DONE
+5. Do NOT restart from INIT — preserve existing stack, mode, and project context
+
+**Detection rule:** if invoked with any of these patterns, treat as Enhance:
+- `enhance: …`
+- `enhance …`
+- `add …` / `change …` / `update …` / `fix …` followed by a description of UI/feature behavior
+- Any invocation where `.pipeline/state.json` already exists AND no explicit `re-run` or `review` keyword
+
+---
 
 ### Re-run a feature
 User says: `"re-run feat-001"` or `"re-run feat-001, feat-002"`
