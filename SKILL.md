@@ -1,6 +1,6 @@
 ---
 name: devforge
-description: "End-to-end web development pipeline. Use this skill whenever: a .docx BRD is provided with a build request, user says \"build from BRD / implement this spec / run the pipeline / develop this feature / enhance / enhance: [description] / re-run feat-X\", or a multi-phase web development workflow is needed. Stack-agnostic — supports nextjs14, react-vite, and more via stack files. Works for both new and existing repos."
+description: "End-to-end web development pipeline. Use this skill whenever: user says \"build / implement this spec / run the pipeline / develop this feature / enhance / enhance: [description] / re-run feat-X\", provides requirements inline or as a docx path, or a multi-phase web development workflow is needed. Stack-agnostic — supports nextjs14, react-vite, and more via stack files. Works for both new and existing repos."
 ---
 
 # Web Dev Pipeline
@@ -12,7 +12,7 @@ Orchestrates an 8-phase build pipeline. All state in `.pipeline/state.json` — 
 - Unit: Vitest + Testing Library · E2E: Playwright
 - Models:
   - claude-sonnet-4-6: orchestrator, architect, dev-executor, reviewer, doc-generator, learning-extractor
-  - claude-haiku-4-5:  brd-parser, project-scanner, test-runner
+  - claude-haiku-4-5:  project-scanner, test-runner
 
 ---
 
@@ -33,13 +33,11 @@ Read `.pipeline/state.json` first on every invocation. Write it after every phas
   "stack": "",
   "stackFilePath": "",
   "mode": "max",
-  "selectedFeatures": [],
   "features": {
     "feat-001": { "status": "PENDING", "builtAt": null },
     "feat-002": { "status": "DONE", "builtAt": "2026-06-26T10:00:00Z" }
   },
   "artifacts": {
-    "brdParsed": ".pipeline/brd-parsed.json",
     "implPlan": ".pipeline/impl-plan.md",
     "featureSpecs": ".pipeline/feature-specs/",
     "clarifications": ".pipeline/clarifications.json",
@@ -58,11 +56,10 @@ Read `.pipeline/state.json` first on every invocation. Write it after every phas
 ```
 
 Feature statuses: `PENDING → BUILDING → DONE → BLOCKED`
-`selectedFeatures`: feat IDs to build. Empty = build all.
 
 Phases:
-- **max** (default): `INIT → BRD_PARSING → FEATURE_SELECTION → PLANNED → EXECUTING → TESTING → REVIEWING → DOCUMENTING → DONE → LEARNING`
-- **standard**: `INIT → BRD_PARSING → FEATURE_SELECTION → PLANNED → EXECUTING → TESTING → DONE → LEARNING`
+- **max** (default): `INIT → PLANNED → EXECUTING → TESTING → REVIEWING → DOCUMENTING → DONE → LEARNING`
+- **standard**: `INIT → PLANNED → EXECUTING → TESTING → DONE → LEARNING`
 Any phase can become `BLOCKED_{PHASE}` on gate failure.
 
 ---
@@ -129,93 +126,20 @@ Both write `.pipeline/project-context.md`. All subsequent agents load this file 
 
 **Both:** run the `## Dev Dependencies` commands, then run the `## Test Config` file writes.
 
-Update `state.project` → set `phase = BRD_PARSING` → write state.
-
----
-
-### BRD_PARSING
-
-Check `state.project.brdMode`:
-- `"file"` → spawn `agents/brd-parser.md`. Pass: `brdPath`, output path `.pipeline/brd-parsed.json`
-- `"inline"` → spawn `agents/brd-parser.md` with `mode: INLINE`. Pass: output path `.pipeline/brd-parsed.json`. (`.pipeline/brd-raw.md` already written — brd-parser skips extraction and goes straight to Step 2)
-
-On success → initialise `state.features` from parsed feature IDs (all status = PENDING) → write state.
-
-**Existing project reconciliation** (skip if `isNewProject = true`):
-
-Read `.pipeline/project-context.md` and `.pipeline/brd-parsed.json`. For each feature, check whether the project context describes it as already implemented (look for matching functionality, route, component, or API described as existing). For each confirmed match, set `state.features[featId].status = "DONE"` and `builtAt = "pre-existing"`. Write state.
-
-→ set `phase = FEATURE_SELECTION` → write state.
-
-**On BRD re-parse (user says "BRD updated, re-parse"):**
-- Re-spawn brd-parser
-- Diff new vs old `brd-parsed.json`
-- For each changed feature, check `clarifications.json` — if clarification exists, ask:
-  ```
-  feat-002 changed in BRD. Previous clarification exists:
-    Q: {question}
-    A: {answer}
-  Still valid? (yes / update)
-  ```
-- Report added/changed/removed features
-- Ask which features to re-run (do not auto-decide)
-
----
-
-### FEATURE_SELECTION
-
-Read `.pipeline/brd-parsed.json` and `state.features`. Display feature list:
-
-```
-Features found in BRD:
-  feat-001  [high]    Login              ✓ EXISTS
-  feat-002  [high]    Master Data        ✓ EXISTS
-  feat-003  [medium]  Transaction
-  feat-004  [low]     Report             ⚠ INCOMPLETE
-  feat-005  [low]     Logging
-
-Build which features?
-  Type: all  OR  feat IDs separated by commas (e.g. feat-002, feat-003)
-  Note: "all" skips ✓ EXISTS features — type their IDs explicitly to rebuild them.
-```
-
-Mark any feature with `state.features[id].status = "DONE"` with `✓ EXISTS`.
-Mark any feature with `"status": "incomplete"` with `⚠ INCOMPLETE` in the list.
-
-`all` expands to: all features whose status is NOT `DONE` or `skipped`. User must name a `✓ EXISTS` feature explicitly to rebuild it.
-
-**Before accepting input — INCOMPLETE gate:** if any features are marked INCOMPLETE, show:
-```
-⚠ {N} incomplete feature(s): feat-004 (Report)
-  BRD section is too thin to build from. Options:
-  a) Skip these features — exclude from this build
-  b) Include anyway — architect will ask clarifying questions
-```
-Resolve per feature before proceeding. Set `status = "skipped"` in brd-parsed.json for skipped features.
-
-**Accept only:**
-- `all` → `selectedFeatures = []` (excludes skipped features automatically)
-- Comma-separated IDs → `selectedFeatures = ["feat-002", "feat-003"]`
-- If anything else typed → re-ask with the same prompt
-
-**Dependency check:** for each selected feat, read its `dependencies` from brd-parsed.json. If a dependency is NOT selected:
-```
-⚠ feat-003 (Transaction) depends on feat-001 (Login) — not selected.
-  a) Add feat-001 to this build
-  b) Proceed anyway (feat-001 already exists in codebase)
-  c) Cancel
-```
-Resolve all conflicts before continuing.
-
-Save to `state.selectedFeatures` → set `phase = PLANNED` → write state.
+Update `state.project` → set `phase = PLANNED` → write state.
 
 ---
 
 ### PLANNED
 
-**Filter:** if `selectedFeatures` non-empty, extract only those features from `brd-parsed.json` into a filtered list. Pass filtered list to architect — not the full brd-parsed.json.
+Spawn `agents/architect.md`. Pass: input source (docx path if `brdMode = "file"`, or `.pipeline/brd-raw.md` if `brdMode = "inline"`), project root, `isNewProject`, `.pipeline/instincts/architect.md` (if exists).
 
-Spawn `agents/architect.md`. Pass: filtered feature list, project root, `isNewProject`, `.pipeline/instincts/architect.md` (if exists).
+Architect must:
+1. Extract features from raw input
+2. Initialize `state.features` with extracted feat IDs (all status = `PENDING`) — write state after this step
+3. Write feature specs to `.pipeline/feature-specs/`
+4. Run clarification loop (see below)
+5. Write `.pipeline/impl-plan.md`
 
 **Clarification loop (per feature, not all at once):**
 
@@ -239,7 +163,7 @@ On success → show `impl-plan.md` → ask: **"Approve this plan? (yes / edit)"*
 
 ### EXECUTING
 
-Read `.pipeline/feature-specs/`. If `selectedFeatures` non-empty, only process those IDs. Skip others.
+Read `.pipeline/feature-specs/`. Process all feature specs in order.
 
 Check `state.features[featId].status` — skip features already `DONE`.
 
@@ -258,7 +182,7 @@ After all features DONE → set `phase = TESTING` → write state.
 
 ### TESTING
 
-Spawn `agents/test-runner.md`. Pass: project root, `.pipeline/brd-parsed.json`.
+Spawn `agents/test-runner.md`. Pass: project root.
 
 Read `.pipeline/test-results.json`:
 
@@ -303,7 +227,7 @@ WARN findings do not block. Report alongside success.
 
 ### DOCUMENTING
 
-Spawn `agents/doc-generator.md`. Pass: project root, `.pipeline/impl-plan.md`, `.pipeline/brd-parsed.json`.
+Spawn `agents/doc-generator.md`. Pass: project root, `.pipeline/impl-plan.md`.
 
 On success → set `phase = DONE` → write state.
 
@@ -353,8 +277,8 @@ User says: `"enhance: {description}"` or `"enhance {description}"` (with or with
 
 1. Write description verbatim to `.pipeline/brd-raw.md` (inline mode)
 2. Set `state.project.brdMode = "inline"`, `state.project.isNewProject = false`
-3. Set `phase = BRD_PARSING` → write state
-4. Resume pipeline from BRD_PARSING → FEATURE_SELECTION → PLANNED → EXECUTING → TESTING → REVIEWING → DOCUMENTING → DONE
+3. Set `phase = PLANNED` → write state
+4. Resume pipeline from PLANNED → EXECUTING → TESTING → REVIEWING → DOCUMENTING → DONE
 5. Do NOT restart from INIT — preserve existing stack, mode, and project context
 
 **Detection rule:** if invoked with any of these patterns, treat as Enhance:
@@ -403,7 +327,6 @@ User says: `"clarification for feat-002 changed: {new answer}"`
 Read `state.phase` → read `state.features` for per-feature status → skip DONE features → resume from exact failure point. Never restart from INIT unless explicitly requested.
 
 ## Agents
-- `agents/brd-parser.md` — DOCX → brd-parsed.json
 - `agents/project-scanner.md` — INSTRUCTION (read provided file) or SCAN (auto-scan) → .pipeline/project-context.md (INIT, existing projects only)
 - `agents/architect.md` — plan + feature specs + clarifications
 - `agents/dev-executor.md` — sequential Next.js build + test fixes
