@@ -40,10 +40,10 @@ curl -fsSL https://raw.githubusercontent.com/JefiSun/devforge/main/install.sh | 
 
 **Windows (PowerShell):**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) -Copilot
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/JefiSun/devforge/main/install.ps1))) --copilot
 ```
 
-> Install for both: pass `--both` / `-Both`. Uninstall: add `--uninstall` / `-Uninstall`. See [install.md](install.md) for full details.
+> Install for both: pass `--both`. Uninstall: add `--uninstall`. See [install.md](install.md) for full details.
 
 ---
 

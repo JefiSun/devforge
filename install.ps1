@@ -1,10 +1,9 @@
-param(
-    [switch]$Copilot,
-    [switch]$Both,
-    [switch]$Uninstall
-)
-
 $ErrorActionPreference = "Stop"
+
+# ponytail: $args instead of param — [scriptblock]::Create() doesn't support param in PS 5.1
+$isCopilot  = $args -contains "-Copilot"   -or $args -contains "--copilot"
+$isBoth     = $args -contains "-Both"      -or $args -contains "--both"
+$isUninstall = $args -contains "-Uninstall" -or $args -contains "--uninstall"
 
 $repo = "https://raw.githubusercontent.com/JefiSun/devforge/main"
 
@@ -47,19 +46,19 @@ function Install-DevForge($skillDir, $agentDir, $label) {
     Write-Host "Done ($label)."
 }
 
-if ($Uninstall) {
-    if ($Both) {
+if ($isUninstall) {
+    if ($isBoth) {
         Uninstall-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
         Uninstall-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
-    } elseif ($Copilot) {
+    } elseif ($isCopilot) {
         Uninstall-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
     } else {
         Uninstall-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
     }
-} elseif ($Both) {
+} elseif ($isBoth) {
     Install-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
     Install-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
-} elseif ($Copilot) {
+} elseif ($isCopilot) {
     Install-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
     Write-Host "Run /devforge in GitHub Copilot CLI to start."
 } else {
