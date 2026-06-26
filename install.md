@@ -11,7 +11,7 @@
 ## Quick Install
 
 ```bash
-git clone https://github.com/yourname/devforge
+git clone https://github.com/JefiSun/devforge.git
 cd devforge
 
 # Create target dirs

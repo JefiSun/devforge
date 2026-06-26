@@ -21,7 +21,7 @@ Each phase writes to `.pipeline/state.json` — the pipeline is fully resumable 
 
 ```bash
 # Clone
-git clone https://github.com/yourname/devforge
+git clone https://github.com/JefiSun/devforge.git
 cd devforge
 
 # Install
