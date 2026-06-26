@@ -37,13 +37,17 @@ function Install-DevForge($skillDir, $agentDir, $label) {
     New-Item -ItemType Directory -Force -Path "$skillDir\stacks" | Out-Null
     New-Item -ItemType Directory -Force -Path $agentDir | Out-Null
     Invoke-WebRequest -Uri "$repo/SKILL.md" -OutFile "$skillDir\SKILL.md" -UseBasicParsing
+    if (-not (Test-Path "$skillDir\SKILL.md") -or (Get-Item "$skillDir\SKILL.md").Length -eq 0) {
+        Write-Error "SKILL.md download failed. Check network or repo URL."
+        exit 1
+    }
     foreach ($f in $stacks) {
         Invoke-WebRequest -Uri "$repo/stacks/$f" -OutFile "$skillDir\stacks\$f" -UseBasicParsing
     }
     foreach ($f in $agents) {
         Invoke-WebRequest -Uri "$repo/$f" -OutFile "$agentDir\$f" -UseBasicParsing
     }
-    Write-Host "Done ($label)."
+    Write-Host "Done ($label). Skill dir: $skillDir"
 }
 
 if ($isUninstall) {
@@ -60,8 +64,8 @@ if ($isUninstall) {
     Install-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
 } elseif ($isCopilot) {
     Install-DevForge "$HOME\.copilot\skills\devforge" "$HOME\.copilot\agents" "GitHub Copilot"
-    Write-Host "Run /devforge in GitHub Copilot CLI to start."
+    Write-Host "Run '/skills info devforge' in GitHub Copilot CLI to verify. If missing, run '/skills reload'."
 } else {
     Install-DevForge "$HOME\.claude\skills\devforge"  "$HOME\.claude\agents"  "Claude Code"
-    Write-Host "Run /devforge in Claude Code to start."
+    Write-Host "Run '/devforge' in Claude Code to verify."
 }

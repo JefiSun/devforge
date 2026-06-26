@@ -82,7 +82,11 @@ Safe to re-run — overwrites existing files. `.pipeline/` state and `instincts/
 /skills info devforge
 ```
 
-You should see the skill name, description, and file path. If missing, run `/skills reload` and check again.
+You should see the skill name, description, and file path. If missing:
+
+1. Run `/skills reload` and check again.
+2. Confirm files landed: `ls ~/.copilot/skills/devforge/` — if empty, the download failed.
+3. If files exist but skill still missing, Copilot may use a different skills directory. Check Copilot CLI docs for the correct path and copy files there.
 
 ---
 

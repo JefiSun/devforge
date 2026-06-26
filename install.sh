@@ -44,13 +44,17 @@ install_for() {
   mkdir -p "$skill_dir/stacks"
   mkdir -p "$agent_dir"
   curl -fsSL "$REPO/SKILL.md" -o "$skill_dir/SKILL.md"
+  if [ ! -s "$skill_dir/SKILL.md" ]; then
+    echo "Error: SKILL.md download failed. Check network or repo URL." >&2
+    exit 1
+  fi
   for f in "${STACKS[@]}"; do
     curl -fsSL "$REPO/stacks/$f" -o "$skill_dir/stacks/$f"
   done
   for f in "${AGENTS[@]}"; do
     curl -fsSL "$REPO/$f" -o "$agent_dir/$f"
   done
-  echo "Done ($label)."
+  echo "Done ($label). Skill dir: $skill_dir"
 }
 
 if $UNINSTALL; then
@@ -63,7 +67,7 @@ if $UNINSTALL; then
 else
   case $TOOL in
     copilot) install_for "$HOME/.copilot/skills/devforge" "$HOME/.copilot/agents" "GitHub Copilot"
-             echo "Run /devforge in GitHub Copilot CLI to start." ;;
+             echo "Run '/skills info devforge' in GitHub Copilot CLI to verify. If missing, run '/skills reload'." ;;
     both)    install_for "$HOME/.claude/skills/devforge"  "$HOME/.claude/agents"  "Claude Code"
              install_for "$HOME/.copilot/skills/devforge" "$HOME/.copilot/agents" "GitHub Copilot" ;;
     *)       install_for "$HOME/.claude/skills/devforge"  "$HOME/.claude/agents"  "Claude Code"
