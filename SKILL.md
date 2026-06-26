@@ -107,7 +107,18 @@ Read `state.stackFilePath`. From the stack file:
 
 **New project:** run the `## Scaffold` command.
 
-**Existing project:** confirm root path exists.
+**Existing project:** confirm root path exists. Then ask:
+
+```
+How should I learn this project?
+  1. instruction — I'll provide a file describing the project (faster, no codebase scan)
+  2. scan        — auto-scan the codebase (slower, no prep needed)
+```
+
+- **instruction** → ask: `Path to your instruction file?` → spawn `agents/project-scanner.md` in INSTRUCTION mode. Pass: `instructionPath`.
+- **scan** → spawn `agents/project-scanner.md` in SCAN mode. Pass: project root.
+
+Both write `.pipeline/project-context.md`. All subsequent agents load this file instead of scanning independently.
 
 **Both:** run the `## Dev Dependencies` commands, then run the `## Test Config` file writes.
 
@@ -330,6 +341,7 @@ Read `state.phase` → read `state.features` for per-feature status → skip DON
 
 ## Agents
 - `agents/brd-parser.md` — DOCX → brd-parsed.json
+- `agents/project-scanner.md` — INSTRUCTION (read provided file) or SCAN (auto-scan) → .pipeline/project-context.md (INIT, existing projects only)
 - `agents/architect.md` — plan + feature specs + clarifications
 - `agents/dev-executor.md` — sequential Next.js build + test fixes
 - `agents/test-runner.md` — unit + E2E + manual checklist (report only)

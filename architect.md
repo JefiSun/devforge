@@ -42,10 +42,10 @@ Apply all instructions — especially clarification patterns (pre-ask those ques
 
 **Existing repo:**
 ```bash
-find {root}/src -type f \( -name "*.ts" -o -name "*.tsx" \) | head -60
-cat {root}/package.json
+cat .pipeline/project-context.md
 ```
-Identify: existing routes, installed components, auth setup, data patterns.
+Load the full project scan written by project-scanner. Use it as the authoritative source for existing routes, installed packages, conventions, models, and auth setup. Do not re-scan the codebase — trust this file.
+
 Plan additive changes only — no refactors unless explicitly required.
 
 **New repo:** use the `## File Structure` section from the stack file as the base directory layout.

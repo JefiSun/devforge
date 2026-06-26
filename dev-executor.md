@@ -41,6 +41,12 @@ cat .pipeline/instincts/dev-executor.md
 ```
 Apply all standing instructions — these override stack defaults where they conflict.
 
+If `.pipeline/project-context.md` exists (existing project):
+```bash
+cat .pipeline/project-context.md
+```
+Apply the actual conventions, file structure, and patterns documented there. These override stack file defaults where they conflict — the project-context reflects what the codebase already does.
+
 ---
 
 ## BUILD MODE
